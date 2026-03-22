@@ -1,57 +1,79 @@
 # CP2 DevOps - Despliegue completo en Azure
 
-Proyecto de despliegue de infraestructura y aplicaciones en Azure utilizando herramientas DevOps.
+Proyecto de despliegue de infraestructura y aplicaciones en Azure utilizando herramientas DevOps, cubriendo todo el ciclo desde la creación de recursos hasta la ejecución en Kubernetes.
 
 ---
 
 ## 🧱 Tecnologías utilizadas
 
-- **Terraform** → Infraestructura como código (Azure)
-- **Ansible** → Configuración automática de la VM
-- **Podman** → Contenedores en la máquina virtual
-- **Azure Container Registry (ACR)** → Registro de imágenes
+- **Terraform** → Infraestructura como código en Azure
+- **Ansible** → Automatización de configuración de la VM
+- **Podman** → Ejecución de contenedores en la VM
+- **Azure Container Registry (ACR)** → Almacenamiento de imágenes
 - **Kubernetes (AKS)** → Orquestación de contenedores
 
 ---
 
 ## 🏗️ Arquitectura del proyecto
 
-El proyecto se divide en varias capas:
+El proyecto se estructura en varias capas:
 
 ### 1. Infraestructura (Terraform)
-- Creación de recursos en Azure:
-  - Máquina virtual Linux
-  - Red virtual y NSG
-  - Azure Container Registry
-  - Cluster AKS
+Se crean los recursos en Azure:
+- Máquina virtual Linux
+- Red virtual (VNet) y reglas de seguridad (NSG)
+- Azure Container Registry (ACR)
+- Cluster Kubernetes (AKS)
+
+Terraform permite reproducir el entorno de forma declarativa y versionada.
 
 ---
 
-### 2. Configuración de la VM (Ansible)
-- Instalación de:
+### 2. Construcción y almacenamiento de imágenes (ACR)
+- Creación de imágenes Docker:
+  - `vm-app` → usada en la VM
+  - `aks-app` → usada en AKS
+- Push de imágenes al ACR
+- Uso del registro privado en ambos entornos (VM y AKS)
+
+---
+
+### 3. Configuración de la VM (Ansible)
+Automatización completa de la máquina virtual:
+
+- Instalación de dependencias:
   - Podman
   - OpenSSL
   - Apache utils (htpasswd)
-- Generación de:
+
+- Configuración de seguridad:
   - Certificado SSL autofirmado
   - Autenticación básica
-- Despliegue de contenedor Nginx
+
+- Despliegue:
+  - Contenedor Nginx desde ACR
+  - Configuración HTTPS
+  - Servicio systemd para persistencia
 
 ---
 
-### 3. Contenedor en VM
+### 4. Despliegue en VM
 - Aplicación web servida con Nginx
 - Acceso mediante:
   - HTTPS
   - Autenticación básica
 
+Se garantiza acceso seguro y persistencia del servicio.
+
 ---
 
-### 4. AKS (Kubernetes)
-- Deployment de la aplicación
+### 5. AKS (Kubernetes)
+Despliegue de la aplicación en cluster:
+
+- Deployment con la imagen desde ACR
 - Service para exposición externa
-- PVC para almacenamiento persistente
-- Uso de imagen desde ACR
+- Persistent Volume Claim (PVC)
+- Uso de init container (busybox) para inicialización
 
 ---
 
@@ -63,6 +85,17 @@ El proyecto se divide en varias capas:
   - Puerto 22 (SSH)
   - Puerto 80 (AKS)
   - Puerto 443 (VM)
+- Uso de ACR privado para imágenes
+
+---
+
+## 🔄 Flujo de despliegue
+
+1. Terraform crea la infraestructura en Azure
+2. Se construyen y suben las imágenes a ACR
+3. Ansible configura la VM automáticamente
+4. Podman ejecuta el contenedor en la VM
+5. Kubernetes despliega la aplicación en AKS
 
 ---
 
@@ -77,13 +110,24 @@ El proyecto se divide en varias capas:
 
 ---
 
+## ✅ Verificaciones realizadas
+
+- Contenedor activo en VM (`podman ps`)
+- Servicio systemd activo
+- Acceso HTTPS funcional
+- Autenticación básica operativa
+- Pod en AKS en estado `Running`
+- Imagen correctamente obtenida desde ACR
+
+---
+
 ## 🚀 Resultado
 
 - Aplicación desplegada en:
   - VM (Podman + Nginx + HTTPS + Auth)
   - AKS (Kubernetes + PVC)
 - Automatización completa del despliegue
-- Uso de buenas prácticas DevOps
+- Uso de buenas prácticas DevOps (IaC, automatización, contenedores, orquestación)
 
 ---
 
