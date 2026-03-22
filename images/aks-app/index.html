@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CP2 DevOps - AKS</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e3a8a, #0f172a 60%);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 820px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      padding: 40px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #2563eb;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: .3px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 38px;
+      line-height: 1.15;
+    }
+    p {
+      color: #cbd5e1;
+      font-size: 18px;
+      line-height: 1.7;
+      margin: 10px 0;
+    }
+    .highlight {
+      color: #93c5fd;
+      font-weight: bold;
+    }
+    .stack {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 28px 0 10px;
+    }
+    .stack span {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: #e2e8f0;
+      font-size: 14px;
+    }
+    .footer {
+      margin-top: 28px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Azure Kubernetes Service</div>
+    <h1>Caso Práctico 2<br>Despliegue en AKS</h1>
+    <p>
+      Landing personalizada desplegada sobre <span class="highlight">Azure Kubernetes Service</span>
+      con <span class="highlight">almacenamiento persistente</span>.
+    </p>
+    <p>
+      Infraestructura creada con <span class="highlight">Terraform</span> y
+      automatización con <span class="highlight">Ansible</span>.
+    </p>
+
+    <div class="stack">
+      <span>Terraform</span>
+      <span>Ansible</span>
+      <span>Podman</span>
+      <span>AKS</span>
+      <span>Kubernetes</span>
+      <span>Azure</span>
+    </div>
+
+    <div class="footer">
+      Ramiro Rodríguez Henríquez · UNIR · DevOps & Cloud Computing
+    </div>
+  </div>
+</body>
+</html>

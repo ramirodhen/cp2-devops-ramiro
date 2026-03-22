@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: landing-aks-service
+spec:
+  selector:
+    app: landing-aks
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer

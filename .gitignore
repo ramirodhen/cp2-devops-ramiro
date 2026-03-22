@@ -1,0 +1,24 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ansible
+*.retry
+
+# macOS
+.DS_Store# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Ansible
+*.retry
+
+# OS
+.DS_Store

@@ -1,0 +1,131 @@
+- name: Configurar VM y desplegar web segura con Podman
+  hosts: vm
+  become: true
+
+  vars:
+    acr_registry: "acrdevopscp258677.azurecr.io"
+    acr_username: "00000000-0000-0000-0000-000000000000"
+    acr_image: "acrdevopscp258677.azurecr.io/vm-app:casopractico2-v2"
+    container_name: "webtest"
+    cert_dir: "/home/azureuser/certs"
+    nginx_conf_path: "/home/azureuser/default.conf"
+    htpasswd_path: "/home/azureuser/htpasswd"
+    cert_crt: "{{ cert_dir }}/nginx.crt"
+    cert_key: "{{ cert_dir }}/nginx.key"
+    basic_auth_user: "ramiro"
+    basic_auth_password: "ramirodevops"
+    vm_ip: "158.158.50.201"
+
+  tasks:
+    - name: Actualizar caché de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Instalar dependencias
+      apt:
+        name:
+          - podman
+          - apache2-utils
+          - openssl
+        state: present
+
+    - name: Crear directorio de certificados
+      file:
+        path: "{{ cert_dir }}"
+        state: directory
+        owner: azureuser
+        group: azureuser
+        mode: "0755"
+
+    - name: Generar certificado autofirmado si no existe
+      command: >
+        openssl req -x509 -nodes -days 365
+        -newkey rsa:2048
+        -keyout {{ cert_key }}
+        -out {{ cert_crt }}
+        -subj "/C=ES/ST=SantaCruzDeTenerife/L=LaPalma/O=UNIR/OU=DevOps/CN={{ vm_ip }}"
+      args:
+        creates: "{{ cert_crt }}"
+
+    - name: Crear archivo htpasswd
+      command: >
+        htpasswd -bc {{ htpasswd_path }} {{ basic_auth_user }} {{ basic_auth_password }}
+      changed_when: true
+
+    - name: Crear configuración de nginx para HTTPS y auth básica
+      copy:
+        dest: "{{ nginx_conf_path }}"
+        owner: azureuser
+        group: azureuser
+        mode: "0644"
+        content: |
+          server {
+              listen 443 ssl;
+              server_name _;
+
+              ssl_certificate /etc/nginx/certs/nginx.crt;
+              ssl_certificate_key /etc/nginx/certs/nginx.key;
+
+              location / {
+                  auth_basic "Acceso restringido";
+                  auth_basic_user_file /etc/nginx/.htpasswd;
+
+                  root /usr/share/nginx/html;
+                  index index.html;
+              }
+          }
+
+    - name: Login en ACR
+      command: podman login {{ acr_registry }} -u {{ acr_username }} -p "{{ acr_token }}"
+      changed_when: false
+
+    - name: Descargar imagen desde ACR
+      command: podman pull {{ acr_image }}
+      register: pull_result
+      changed_when: "'Downloaded' in pull_result.stdout or 'Copying blob' in pull_result.stdout or 'Writing manifest' in pull_result.stdout"
+
+    - name: Eliminar contenedor previo si existe
+      containers.podman.podman_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Levantar contenedor con HTTPS y autenticación básica
+      containers.podman.podman_container:
+        name: "{{ container_name }}"
+        image: "{{ acr_image }}"
+        state: started
+        recreate: true
+        ports:
+          - "443:443"
+        volume:
+          - "{{ cert_dir }}:/etc/nginx/certs:Z"
+          - "{{ nginx_conf_path }}:/etc/nginx/conf.d/default.conf:Z"
+          - "{{ htpasswd_path }}:/etc/nginx/.htpasswd:Z"
+
+    - name: Generar servicio systemd del contenedor
+      command: podman generate systemd --name {{ container_name }} --files --new
+      args:
+        chdir: /home/azureuser
+      changed_when: true
+
+    - name: Mover servicio systemd a /etc/systemd/system
+      copy:
+        src: "/home/azureuser/container-{{ container_name }}.service"
+        dest: "/etc/systemd/system/container-{{ container_name }}.service"
+        remote_src: true
+        mode: "0644"
+
+    - name: Recargar systemd
+      systemd:
+        daemon_reload: true
+
+    - name: Habilitar servicio del contenedor
+      systemd:
+        name: "container-{{ container_name }}.service"
+        enabled: true
+
+    - name: Reiniciar contenedor gestionado por systemd
+      systemd:
+        name: "container-{{ container_name }}.service"
+        state: restarted
